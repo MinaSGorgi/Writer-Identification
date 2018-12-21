@@ -12,7 +12,7 @@ def binarize_image(image, gsize=(3, 3), csize=(3, 3)):
         csize:  The closing kernel size, defaults to (3, 3).
 
     Returns:
-        The resultant new image.
+        The resultant new binary image where foreground is white.
 
     Raises:
         None
@@ -25,7 +25,9 @@ def binarize_image(image, gsize=(3, 3), csize=(3, 3)):
     closing_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, csize)
     closed_image = cv2.morphologyEx(thresh_image, cv2.MORPH_CLOSE, closing_kernel)
 
-    return closed_image
+    inverted_image = cv2.bitwise_not(closed_image)
+
+    return inverted_image
 
 
 if __name__ == "__main__":
