@@ -30,6 +30,33 @@ def binarize_image(image, gsize=(3, 3), csize=(3, 3)):
     return inverted_image
 
 
+def build_texture(image, thresh_area=128):
+    """
+    TODO: add documentation here
+    """
+
+    # disconnect text from border by forcing white border
+    border = (20,) * 4
+    border_image = cv2.copyMakeBorder(image, *border, cv2.BORDER_CONSTANT, value=0)
+    contour_image = border_image[5:-5, 5:-5].copy()
+
+    # get contours image
+    __, contours, hierarchy = cv2.findContours(contour_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    i = 0
+    for contour in contours:
+        i = i + 1
+        # get rectangle bounding contour
+        x, y, w, h = cv2.boundingRect(contour)
+
+        # draw rectangle around contour on original image and discard small artifacts
+        if w * h > thresh_area:
+            cv2.imshow(str(i), border_image[y:y + h, x:x + w])
+            cv2.rectangle(border_image, (x, y), (x + w, y + h), 255, 2)
+
+    return border_image
+
+
 if __name__ == "__main__":
     # for manual testing purposes
     parser = argparse.ArgumentParser()
@@ -41,8 +68,10 @@ if __name__ == "__main__":
 
     # test operations
     binary_image = binarize_image(input_image)
+    textured_image = build_texture(binary_image)
 
     # show results
     cv2.imshow("Input Image", input_image)
     cv2.imshow("Binary Image", binary_image)
+    cv2.imshow("Textured Image", textured_image)
     cv2.waitKey(0)
