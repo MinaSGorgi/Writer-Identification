@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import convolve2d
 from scipy.cluster.vq import whiten
-import glob
+import DataSetReader
+from pathlib import Path
 import time
-
 
 
 def lpq(img, winSize=3, mode='nh'):
@@ -59,10 +59,15 @@ def lpq(img, winSize=3, mode='nh'):
 
 
 def testLPQFeatures():
+    # myDict = DataSetReader.readDataSet(Path.cwd().parent / 'DataSet')
     image = imageio.imread('img.png', pilmode='L')
-    lpqFeatureVector = lpq(image, winSize=3, mode='nh')
-    histogarm = plt.hist(lpqFeatureVector)
+    startTime = time.time()
+    lpqFeatureVector = lpq(image, winSize=3, mode='im')
+    endTime = time.time()
+    histogarm = plt.imshow(lpqFeatureVector)
     plt.show()
+    print(endTime - startTime)
+    
 
-
-
+if __name__ == '__main__':
+    testLPQFeatures()

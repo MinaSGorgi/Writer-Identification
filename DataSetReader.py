@@ -15,5 +15,6 @@ def readDataSet(dataSetLocation: Path):
     return writerImageDictionary
 
 
-mydict = readDataSet(Path.cwd().parent / 'DataSet')
-print(mydict)
+if __name__ == '__main__':
+    mydict = readDataSet(Path.cwd().parent / 'DataSet')
+    print(mydict)
