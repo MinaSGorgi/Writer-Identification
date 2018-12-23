@@ -30,7 +30,7 @@ def binarize_image(grey_image):
     return closed_image
 
 
-def build_texture(binary_image, thresh_area=128):
+def build_texture(binary_image):
     """
     TODO: add documentation here
     """
@@ -52,8 +52,6 @@ def build_texture(binary_image, thresh_area=128):
 
     return contours_image
 
-def preProcessImage(image):
-    pass
 
 if __name__ == "__main__":
     # for manual testing purposes
@@ -63,7 +61,6 @@ if __name__ == "__main__":
 
     # load the image from disk
     input_image = skimage.io.imread(args["image"], as_gray=True)
-    print(input_image.shape)
 
     # test operations
     binary_image = binarize_image(input_image)
