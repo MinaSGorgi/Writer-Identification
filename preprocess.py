@@ -1,60 +1,56 @@
 import argparse
-import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+
+import skimage
+from skimage import io
+from skimage import morphology
 
 
-def binarize_image(image, gsize=(3, 3), csize=(3, 3)):
+def binarize_image(grey_image):
     """
-    Performs: Gaussian blur -> Otsu binarization -> Closing .
+    Performs: Gaussian blur -> Otsu threshold -> Closing kernel.
 
     Args:
-        image: The BGR image to process.
-        gsize: The Gaussian kernel size, defaults to (3, 3).
-        csize:  The closing kernel size, defaults to (3, 3).
+        grey_image: The grey image to process.
 
     Returns:
-        The resultant new binary image where foreground is white.
+        The resultant new binary image.
 
     Raises:
         None
     """
+    gaussian_image = skimage.filters.gaussian(grey_image)
 
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blur_image = cv2.GaussianBlur(gray_image, gsize, 0)
-    __, thresh_image = cv2.threshold(blur_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    threshold = skimage.filters.threshold_otsu(gaussian_image)
+    thresh_image = gaussian_image <= threshold
 
-    closing_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, csize)
-    closed_image = cv2.morphologyEx(thresh_image, cv2.MORPH_CLOSE, closing_kernel)
+    closed_image = skimage.morphology.binary_closing(thresh_image)
 
-    inverted_image = cv2.bitwise_not(closed_image)
-
-    return inverted_image
+    return closed_image
 
 
-def build_texture(image, thresh_area=128):
+def build_texture(binary_image, thresh_area=128):
     """
     TODO: add documentation here
     """
+    # get contours
+    contours = skimage.measure.find_contours(binary_image, 0, fully_connected='high', positive_orientation='low')
+    contours_image = binary_image.copy()
 
-    # disconnect text from border by forcing white border
-    border = (20,) * 4
-    border_image = cv2.copyMakeBorder(image, *border, cv2.BORDER_CONSTANT, value=0)
-    contour_image = border_image[5:-5, 5:-5].copy()
-
-    # get contours image
-    __, contours, hierarchy = cv2.findContours(contour_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-    i = 0
+    # draw bounding boxes
     for contour in contours:
-        i = i + 1
-        # get rectangle bounding contour
-        x, y, w, h = cv2.boundingRect(contour)
+        xmin = np.min(contour[:, 0])
+        xmax = np.max(contour[:, 0])
+        ymin = np.min(contour[:, 1])
+        ymax = np.max(contour[:, 1])
 
-        # draw rectangle around contour on original image and discard small artifacts
-        if w * h > thresh_area:
-            cv2.imshow(str(i), border_image[y:y + h, x:x + w])
-            cv2.rectangle(border_image, (x, y), (x + w, y + h), 255, 2)
+        r = [xmin, xmax, xmax, xmin, xmin]
+        c = [ymax, ymax, ymin, ymin, ymax]
+        rr, cc = skimage.draw.polygon_perimeter(r, c, contours_image.shape)
+        contours_image[rr, cc] = 1  # set color white
 
-    return border_image
+    return contours_image
 
 
 if __name__ == "__main__":
@@ -64,14 +60,25 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     # load the image from disk
-    input_image = cv2.imread(args["image"])
+    input_image = skimage.io.imread(args["image"], as_gray=True)
+    print(input_image.shape)
 
     # test operations
     binary_image = binarize_image(input_image)
-    textured_image = build_texture(binary_image)
+    contours_image = build_texture(binary_image)
 
     # show results
-    cv2.imshow("Input Image", input_image)
-    cv2.imshow("Binary Image", binary_image)
-    cv2.imshow("Textured Image", textured_image)
-    cv2.waitKey(0)
+    rows = 1
+    cols = 3
+    figure, axes = plt.subplots(rows, cols)
+
+    axes[0].imshow(input_image, cmap=plt.cm.gray)
+    axes[0].set_title('Input Image')
+
+    axes[1].imshow(binary_image, cmap=plt.cm.gray)
+    axes[1].set_title('Binary Image')
+
+    axes[2].imshow(contours_image, cmap=plt.cm.gray)
+    axes[2].set_title('Contours Image')
+
+    plt.show()
