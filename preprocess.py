@@ -1,6 +1,9 @@
 import argparse
 import matplotlib.pyplot as plt
+import numpy as np
+
 import skimage
+from skimage import io
 from skimage import morphology
 
 
@@ -27,31 +30,27 @@ def binarize_image(grey_image):
     return closed_image
 
 
-def build_texture(image, thresh_area=128):
+def build_texture(binary_image, thresh_area=128):
     """
     TODO: add documentation here
     """
+    # get contours
+    contours = skimage.measure.find_contours(binary_image, 0, fully_connected='high', positive_orientation='low')
+    contours_image = binary_image.copy()
 
-    # disconnect text from border by forcing white border
-    border = (20,) * 4
-    border_image = cv2.copyMakeBorder(image, *border, cv2.BORDER_CONSTANT, value=0)
-    contour_image = border_image[5:-5, 5:-5].copy()
-
-    # get contours image
-    __, contours, hierarchy = cv2.findContours(contour_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
-    i = 0
+    # draw bounding boxes
     for contour in contours:
-        i = i + 1
-        # get rectangle bounding contour
-        x, y, w, h = cv2.boundingRect(contour)
+        xmin = np.min(contour[:, 0])
+        xmax = np.max(contour[:, 0])
+        ymin = np.min(contour[:, 1])
+        ymax = np.max(contour[:, 1])
 
-        # draw rectangle around contour on original image and discard small artifacts
-        if w * h > thresh_area:
-            cv2.imshow(str(i), border_image[y:y + h, x:x + w])
-            cv2.rectangle(border_image, (x, y), (x + w, y + h), 255, 2)
+        r = [xmin, xmax, xmax, xmin, xmin]
+        c = [ymax, ymax, ymin, ymin, ymax]
+        rr, cc = skimage.draw.polygon_perimeter(r, c, contours_image.shape)
+        contours_image[rr, cc] = 1  # set color white
 
-    return border_image
+    return contours_image
 
 
 if __name__ == "__main__":
@@ -62,19 +61,24 @@ if __name__ == "__main__":
 
     # load the image from disk
     input_image = skimage.io.imread(args["image"], as_gray=True)
+    print(input_image.shape)
 
     # test operations
     binary_image = binarize_image(input_image)
+    contours_image = build_texture(binary_image)
 
     # show results
     rows = 1
-    cols = 2
-    fig, axs = plt.subplots(rows, cols, constrained_layout=True)
+    cols = 3
+    figure, axes = plt.subplots(rows, cols)
 
-    axs[0].imshow(input_image, cmap=plt.cm.gray)
-    axs[0].set_title('Input Image')
+    axes[0].imshow(input_image, cmap=plt.cm.gray)
+    axes[0].set_title('Input Image')
 
-    axs[1].imshow(binary_image, cmap=plt.cm.gray)
-    axs[1].set_title('Binary Image')
+    axes[1].imshow(binary_image, cmap=plt.cm.gray)
+    axes[1].set_title('Binary Image')
+
+    axes[2].imshow(contours_image, cmap=plt.cm.gray)
+    axes[2].set_title('Contours Image')
 
     plt.show()
