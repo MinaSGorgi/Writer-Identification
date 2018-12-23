@@ -53,31 +53,38 @@ def build_texture(binary_image):
     return contours_image
 
 
+def preprocess_image(image_path, debug=False):
+    # load the image from disk
+    input_image = skimage.io.imread(image_path, as_gray=True)
+
+    # perform operations
+    binary_image = binarize_image(input_image)
+    contours_image = build_texture(binary_image)
+
+    if debug:
+        # show results
+        rows = 1
+        cols = 3
+        figure, axes = plt.subplots(rows, cols)
+
+        axes[0].imshow(input_image, cmap=plt.cm.gray)
+        axes[0].set_title('Input Image')
+
+        axes[1].imshow(binary_image, cmap=plt.cm.gray)
+        axes[1].set_title('Binary Image')
+
+        axes[2].imshow(contours_image, cmap=plt.cm.gray)
+        axes[2].set_title('Contours Image')
+
+        plt.show()
+
+    return contours_image
+
 if __name__ == "__main__":
     # for manual testing purposes
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--image", required=True, help="path to input image file")
     args = vars(parser.parse_args())
 
-    # load the image from disk
-    input_image = skimage.io.imread(args["image"], as_gray=True)
+    preprocess_image(args["image"], debug=True)
 
-    # test operations
-    binary_image = binarize_image(input_image)
-    contours_image = build_texture(binary_image)
-
-    # show results
-    rows = 1
-    cols = 3
-    figure, axes = plt.subplots(rows, cols)
-
-    axes[0].imshow(input_image, cmap=plt.cm.gray)
-    axes[0].set_title('Input Image')
-
-    axes[1].imshow(binary_image, cmap=plt.cm.gray)
-    axes[1].set_title('Binary Image')
-
-    axes[2].imshow(contours_image, cmap=plt.cm.gray)
-    axes[2].set_title('Contours Image')
-
-    plt.show()
