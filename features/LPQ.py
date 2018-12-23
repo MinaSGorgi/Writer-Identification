@@ -1,14 +1,8 @@
-import imageio
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import convolve2d
 from scipy.cluster.vq import whiten
-import DataSetReader
-from pathlib import Path
-import time
 
-
-def lpq(img, winSize=3, mode='nh'):
+def LPQ(img, winSize=3, mode='nh'):
     STFTalpha = 1 / winSize  # alpha in STFT approaches (for Gaussian derivative alpha=1)
 
     convmode = 'valid'  # Compute descriptor responses only on part that have full neigborhood. Use 'same' if all pixels are included (extrapolates np.image with zeros).
@@ -56,18 +50,3 @@ def lpq(img, winSize=3, mode='nh'):
     if mode == 'nh':
         LPQdesc = LPQdesc / LPQdesc.sum()
     return LPQdesc
-
-
-def testLPQFeatures():
-    # myDict = DataSetReader.readDataSet(Path.cwd().parent / 'DataSet')
-    image = imageio.imread('img.png', pilmode='L')
-    startTime = time.time()
-    lpqFeatureVector = lpq(image, winSize=3, mode='im')
-    endTime = time.time()
-    histogarm = plt.imshow(lpqFeatureVector)
-    plt.show()
-    print(endTime - startTime)
-    
-
-if __name__ == '__main__':
-    testLPQFeatures()

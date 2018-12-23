@@ -1,8 +1,7 @@
 from skimage.feature import local_binary_pattern
 import numpy as np
 
-
-def extract_lbp_features(image, points_number=8, radius=2, method='uniform'):
+def LBP(image, points_number=8, radius=2, method='uniform'):
     """
         Performs:
             * Extract the LBP features
