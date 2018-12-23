@@ -5,6 +5,7 @@ import numpy as np
 import skimage
 from skimage import io
 from skimage import morphology
+from skimage import transform
 
 
 def binarize_image(grey_image):
@@ -30,55 +31,78 @@ def binarize_image(grey_image):
     return closed_image
 
 
-def build_texture(binary_image):
+def get_cords(contour):
     """
     TODO: add documentation here
     """
-    # get contours
-    contours = skimage.measure.find_contours(binary_image, 0, fully_connected='high', positive_orientation='low')
-    contours_image = binary_image.copy()
+    return np.min(contour[:, 0]), np.max(contour[:, 0]), np.min(contour[:, 1]), np.max(contour[:, 1])
 
-    # draw bounding boxes
+
+def get_contours(binary_image):
+    """
+    TODO: add documentation here
+    """
+    # get all contours
+    contours = skimage.measure.find_contours(binary_image, 0, fully_connected='high')
+
+    separators = []
+    # get 3 separator lines
     for contour in contours:
-        xmin = np.min(contour[:, 0])
-        xmax = np.max(contour[:, 0])
-        ymin = np.min(contour[:, 1])
-        ymax = np.max(contour[:, 1])
+        xmin, xmax, ymin, ymax = get_cords(contour)
 
-        r = [xmin, xmax, xmax, xmin, xmin]
-        c = [ymax, ymax, ymin, ymin, ymax]
-        rr, cc = skimage.draw.polygon_perimeter(r, c, contours_image.shape)
-        contours_image[rr, cc] = 1  # set color white
+        if ymax - ymin > binary_image.shape[1] * 0.8:
+            separators.append((int(xmin), int(xmax)))
+    rmin = separators[1][1]
+    rmax = separators[2][0]
 
-    return contours_image
+    contours_image = binary_image.copy()
+    final_contours = []
+    # get contours of extracted text only
+    for contour in contours:
+        xmin, xmax, ymin, ymax = get_cords(contour)
+
+        if xmax > rmin:
+            final_contours.append(contour)
+
+            r = [xmin, xmax, xmax, xmin, xmin]
+            c = [ymax, ymax, ymin, ymin, ymax]
+
+            rr, cc = skimage.draw.polygon_perimeter(r, c, contours_image.shape)
+            contours_image[rr, cc] = 1  # set color white
+
+    return final_contours, contours_image[rmin:rmax]
 
 
 def preprocess_image(image_path, debug=False):
+    """
+    TODO: add documentation here
+    """
     # load the image from disk
     input_image = skimage.io.imread(image_path, as_gray=True)
 
     # perform operations
     binary_image = binarize_image(input_image)
-    contours_image = build_texture(binary_image)
+    contours, contours_image = get_contours(binary_image)
 
     if debug:
         # show results
-        rows = 1
-        cols = 3
+        rows = 2
+        cols = 2
         figure, axes = plt.subplots(rows, cols)
 
-        axes[0].imshow(input_image, cmap=plt.cm.gray)
-        axes[0].set_title('Input Image')
+        axes[0][0].imshow(input_image, cmap=plt.cm.gray)
+        axes[0][0].set_title('Input Image')
 
-        axes[1].imshow(binary_image, cmap=plt.cm.gray)
-        axes[1].set_title('Binary Image')
+        axes[0][1].imshow(binary_image, cmap=plt.cm.gray)
+        axes[0][1].set_title('Binary Image')
 
-        axes[2].imshow(contours_image, cmap=plt.cm.gray)
-        axes[2].set_title('Contours Image')
+        axes[1][0].imshow(contours_image, cmap=plt.cm.gray)
+        axes[1][0].set_title('Contours Image')
 
         plt.show()
 
     return contours_image
+
 
 if __name__ == "__main__":
     # for manual testing purposes
@@ -87,4 +111,3 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     preprocess_image(args["image"], debug=True)
-
