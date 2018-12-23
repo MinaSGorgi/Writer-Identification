@@ -17,7 +17,11 @@ def getPairWise(R, S, max_writers=float('inf')):
         while len(Q) < S:
             key = writer
             while key == writer:
-                key = choice(writerFeatureVectorsDict.keys())
+                key = choice(list(writerFeatureVectorsDict.keys()))
             Q.append(choice(writerFeatureVectorsDict[key]))
         negative_list += product(V, Q)
     return positive_list, negative_list
+
+
+positive_list, negative_list = getPairWise(2, 2)
+
