@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.obj
 
 # Distribution / packaging
 .Python
@@ -105,3 +106,5 @@ venv.bak/
 
 # PyCharm
 .idea
+
+.vscode

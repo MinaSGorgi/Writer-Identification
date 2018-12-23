@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections import defaultdict
 
-def readDataSet(dataSetLocation: Path):
+def readDataSet(dataSetLocation):
     writerImageDictionary = defaultdict(list)
     formsFileLocation = dataSetLocation / 'ascii' / 'forms.txt'
     imageLocation = dataSetLocation / 'forms'
