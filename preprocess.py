@@ -1,33 +1,30 @@
 import argparse
-import cv2
+import matplotlib.pyplot as plt
+import skimage
+from skimage import morphology
 
 
-def binarize_image(image, gsize=(3, 3), csize=(3, 3)):
+def binarize_image(grey_image):
     """
-    Performs: Gaussian blur -> Otsu binarization -> Closing .
+    Performs: Gaussian blur -> Otsu threshold -> Closing kernel.
 
     Args:
-        image: The BGR image to process.
-        gsize: The Gaussian kernel size, defaults to (3, 3).
-        csize:  The closing kernel size, defaults to (3, 3).
+        grey_image: The grey image to process.
 
     Returns:
-        The resultant new binary image where foreground is white.
+        The resultant new binary image.
 
     Raises:
         None
     """
+    gaussian_image = skimage.filters.gaussian(grey_image)
 
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blur_image = cv2.GaussianBlur(gray_image, gsize, 0)
-    __, thresh_image = cv2.threshold(blur_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    threshold = skimage.filters.threshold_otsu(gaussian_image)
+    thresh_image = gaussian_image <= threshold
 
-    closing_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, csize)
-    closed_image = cv2.morphologyEx(thresh_image, cv2.MORPH_CLOSE, closing_kernel)
+    closed_image = skimage.morphology.binary_closing(thresh_image)
 
-    inverted_image = cv2.bitwise_not(closed_image)
-
-    return inverted_image
+    return closed_image
 
 
 def build_texture(image, thresh_area=128):
@@ -64,14 +61,20 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
 
     # load the image from disk
-    input_image = cv2.imread(args["image"])
+    input_image = skimage.io.imread(args["image"], as_gray=True)
 
     # test operations
     binary_image = binarize_image(input_image)
-    textured_image = build_texture(binary_image)
 
     # show results
-    cv2.imshow("Input Image", input_image)
-    cv2.imshow("Binary Image", binary_image)
-    cv2.imshow("Textured Image", textured_image)
-    cv2.waitKey(0)
+    rows = 1
+    cols = 2
+    fig, axs = plt.subplots(rows, cols, constrained_layout=True)
+
+    axs[0].imshow(input_image, cmap=plt.cm.gray)
+    axs[0].set_title('Input Image')
+
+    axs[1].imshow(binary_image, cmap=plt.cm.gray)
+    axs[1].set_title('Binary Image')
+
+    plt.show()
