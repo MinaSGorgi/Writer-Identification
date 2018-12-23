@@ -1,9 +1,7 @@
 import argparse
-import matplotlib.pyplot as plt
 import numpy as np
 
 import skimage
-from skimage import io
 from skimage import morphology
 
 
@@ -30,7 +28,7 @@ def binarize_image(grey_image):
     return closed_image
 
 
-def build_texture(binary_image, thresh_area=128):
+def build_texture(binary_image):
     """
     TODO: add documentation here
     """
@@ -52,8 +50,32 @@ def build_texture(binary_image, thresh_area=128):
 
     return contours_image
 
-def preprocessImage(image):
-    return [image[0:255,0:255]]
+
+def preprocessImage(input_image, debug=False):
+
+    return [input_image[0:255,0:255]]
+    # # perform operations
+    # binary_image = binarize_image(input_image)
+    # contours_image = build_texture(binary_image)
+    #
+    # if debug:
+    #     # show results
+    #     rows = 1
+    #     cols = 3
+    #     figure, axes = plt.subplots(rows, cols)
+    #
+    #     axes[0].imshow(input_image, cmap=plt.cm.gray)
+    #     axes[0].set_title('Input Image')
+    #
+    #     axes[1].imshow(binary_image, cmap=plt.cm.gray)
+    #     axes[1].set_title('Binary Image')
+    #
+    #     axes[2].imshow(contours_image, cmap=plt.cm.gray)
+    #     axes[2].set_title('Contours Image')
+    #
+    #     plt.show()
+    #
+    # return contours_image
 
 if __name__ == "__main__":
     # for manual testing purposes
@@ -61,26 +83,5 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--image", required=True, help="path to input image file")
     args = vars(parser.parse_args())
 
-    # load the image from disk
-    input_image = skimage.io.imread(args["image"], as_gray=True)
-    print(input_image.shape)
+    preprocess_image(args["image"], debug=True)
 
-    # test operations
-    binary_image = binarize_image(input_image)
-    contours_image = build_texture(binary_image)
-
-    # show results
-    rows = 1
-    cols = 3
-    figure, axes = plt.subplots(rows, cols)
-
-    axes[0].imshow(input_image, cmap=plt.cm.gray)
-    axes[0].set_title('Input Image')
-
-    axes[1].imshow(binary_image, cmap=plt.cm.gray)
-    axes[1].set_title('Binary Image')
-
-    axes[2].imshow(contours_image, cmap=plt.cm.gray)
-    axes[2].set_title('Contours Image')
-
-    plt.show()
