@@ -77,7 +77,7 @@ def preprocessImage(input_image, debug=False):
     """
     TODO: add documentation here
     """
-    #return [input_image[0:255,0:255]]
+    return [input_image[0:255,0:255]]
 
     ## perform operations
     #binary_image = binarize_image(input_image)
