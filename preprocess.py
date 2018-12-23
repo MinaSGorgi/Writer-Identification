@@ -52,8 +52,8 @@ def build_texture(binary_image, thresh_area=128):
 
     return contours_image
 
-def preProcessImage(image):
-    pass
+def preprocessImage(image):
+    return [image[0:255,0:255]]
 
 if __name__ == "__main__":
     # for manual testing purposes
