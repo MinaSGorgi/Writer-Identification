@@ -89,25 +89,26 @@ def build_texture(grey_image, contours, transposed_center):
     xdist_max = 0
     for contour in contours:
         xmin, xmax, ymin, ymax = get_cords(contour)
-        xdist = xmax + 1 - xmin
-        ydist = ymax + 1 - ymin
+        xdist = xmax - xmin
+        ydist = ymax - ymin
         xdist_total += xdist
         xnum += 1
         xdist_max = max(xdist_max, xdist)
+        
+        if xdist > 32 and ydist > 32:
+            if ycenter + ydist > texture_image.shape[1]:
+                ycenter = 0
+                xcenter += xdist_max
+                xdist_total = 0
+                xnum = 0
+                xdist_max = 0
 
-        if ycenter + ydist > texture_image.shape[1]:
-            ycenter = 0
-            xcenter += int( xdist_total / xnum / 2)
-            xdist_total = 0
-            xnum = 0
-            xdist_max = 0
+            iso_contour = np.full(shape=(xdist, ydist), fill_value=255)
+            #for point in contour:
+                #iso_contour[int(point[0]) - xmin, int(point[1]) - ymin] = grey_image[int(point[0]), int(point[1])]
 
-        iso_contour = np.full(shape=(xdist, ydist), fill_value=255)
-        for point in contour:
-            iso_contour[int(point[0]) - xmin, int(point[1]) - ymin] = grey_image[int(point[0]), int(point[1])]
-
-        texture_image[xcenter:xcenter+xdist, ycenter:ycenter+ydist] = iso_contour
-        ycenter += ydist
+            texture_image[xcenter:xcenter+xdist, ycenter:ycenter+ydist] = grey_image[xmin:xmax, ymin:ymax]
+            ycenter += ydist
 
     return texture_image[:xcenter+xdist_max]
 
@@ -152,6 +153,7 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
     
         plt.show()
 
+        skimage.io.imsave('slices/texture.png', texture_image, cmap=plt.cm.gray)
         for i in range(len(texture_images)):
             skimage.io.imsave('slices/'+ str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
 
