@@ -120,6 +120,17 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
     binary_image = binarize_image(input_image)
     contours, transposed_center, contours_image = get_contours(binary_image)
     texture_image = build_texture(input_image, contours, transposed_center)
+
+    texture_images = []
+    x = 0
+    y = 0
+    ydist, xdist = texture_size
+    while x + xdist < texture_image.shape[0]:
+        while y + ydist < texture_image.shape[1]:
+            slice_image = texture_image[x:x+xdist, y:y+ydist].copy()
+            texture_images.append(slice_image)
+            y += ydist
+        x += xdist
     
     if debug:
         # show results
@@ -140,21 +151,9 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
         axes[1][1].set_title('Texture Image')
     
         plt.show()
-    
-    texture_images = []
-    x = 0
-    y = 0
-    ydist, xdist = texture_size
-    while x + xdist < texture_image.shape[0]:
-        while y + ydist < texture_image.shape[1]:
-            slice_image = texture_image[x:x+xdist, y:y+ydist].copy()
-            texture_images.append(slice_image)
-            y += ydist
-        x += xdist
 
-    if debug:
         for i in range(len(texture_images)):
-            skimage.io.imsave(str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
+            skimage.io.imsave('slices/'+ str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
 
     return texture_images
 
