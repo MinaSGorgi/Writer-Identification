@@ -1,22 +1,51 @@
-from classifier import train, classify
 from argparse import ArgumentParser
 from time import time
+from pathlib import Path
+from skimage import io
+from preprocess import preprocessImage
+from features.LBP import LBP
+from features.LPQ import LPQ
 
 parser = ArgumentParser()
-parser.add_argument('operation', type=str, choices=['train', 'classify'])
-parser.add_argument('input_directory', type=str)
+parser.add_argument('directory', type=str)
+parser.add_argument('mode', type=str, choices=['LBP', 'LPQ'])
 args = parser.parse_args()
 
+def read_classification_data(directory):
+    for directory in Path(directory).iterdir():
+        if not directory.is_dir():
+            continue
+        yield [[directory / folder / (img + '.PNG') for img in ('1', '2')] for folder in ('1', '2', '3')], directory / 'test.PNG'
+
+def extract_features_from_image(image_path):
+    feature_vectors = []
+    image = io.imread(image_path, as_gray=True)
+    preprocessedImages = preprocessImage(image)
+    if len(preprocessedImages) == 0:
+        raise RuntimeError('Too small handwritten text at ' + image_path)
+    for preprocessedFragment in preprocessedImages:
+        if args.mode == 'LBP':
+            feature_vectors.append(LBP(preprocessedFragment))
+        elif args.mode == 'LPQ':
+            feature_vectors.append(LPQ(preprocessedFragment))
+        else:
+            raise RuntimeError
+    return feature_vectors
+
+def classify(data, test):
+    reference_feature_vectors_list = map(lambda images_paths: chain(*map(extract_features_from_image, images_paths)), data)
+    test_feature_vectors = extract_features_from_image(test)
+    scores = []
+    for reference_feature_vectors in reference_feature_vectors_list:
+        dissimilarity_vectors = [np.abs(x - y) for x, y in product(reference_feature_vectors, test_feature_vectors)]
+        scores.append(sum(predict_knn(dissimilarity_vectors)))
+    return score.index(max(scores) + 1)
+
 with open(args.directory, 'r') as directory:
-    if args.operation == 'train':
-        train(read_training_data(args.directory))
-    elif args.operation == 'classify':
-        with open('results.txt', 'w') as results_file, open('time.txt', 'w') as time_file:
-            for data, test in read_classification_data(args.directory):
-                before = time()
-                label = classify(data, test)
-                after = time()
-                print(label, file=results_file)
-                print(after - before, file=time_file)
-    else:
-        raise RuntimeError
+    with open('results.txt', 'w') as results_file, open('time.txt', 'w') as time_file:
+        for data, test in read_classification_data(args.directory):
+            before = time()
+            label = classify(data, test)
+            after = time()
+            print(label, file=results_file)
+            print(after - before, file=time_file)
