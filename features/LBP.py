@@ -1,7 +1,7 @@
 from skimage.feature import local_binary_pattern
 import numpy as np
 
-def LBP(image, points_number=8, radius=2, method='uniform'):
+def LBP(image, points_number=8, radius=1, method='default'):
     """
         Performs:
             * Extract the LBP features
@@ -20,7 +20,7 @@ def LBP(image, points_number=8, radius=2, method='uniform'):
         Raises:
             None
     """
-    BINS = 59
+    BINS = 256
     LBP = local_binary_pattern(image=image, P=points_number, R=radius, method=method)
     hist = np.histogram(LBP, bins=np.arange(BINS))
     hist = ((hist[0] - hist[0].min()) / (hist[0].max() - hist[0].min()), hist[1])

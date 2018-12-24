@@ -26,6 +26,7 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
                     raise RuntimeError
     with open('features.obj', 'wb') as features_file:
         pickle.dump(writerFeatureVectorsDict, features_file)
+    return writerFeatureVectorsDict
 
 
-processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ')
+x = processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LBP',25)
