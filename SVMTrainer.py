@@ -13,12 +13,13 @@ def convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_lis
 
 
 def train_svm(probability=False):
-    positive_list, negative_list = getPairWise(5, 5)
+    positive_list, negative_list = getPairWise(50, 50)
     dissimilarity_vector, labels = convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_list)
-    clf = svm.SVC(gamma='scale',cache_size=2000,probability=probability)
+    clf = svm.SVC(gamma='scale', cache_size=200, probability=probability)
     clf.fit(dissimilarity_vector, labels)
-    return clf
+    predictions = clf.predict(dissimilarity_vector)
+    return clf, predictions
 
 
 if __name__ == '__main__':
-    clf = train_svm()
+    clf, predictions = train_svm()
