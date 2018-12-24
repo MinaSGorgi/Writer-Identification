@@ -106,15 +106,12 @@ def build_texture(grey_image, contours, transposed_center):
         texture_image[xcenter:xcenter+xdist, ycenter:ycenter+ydist] = iso_contour
         ycenter += ydist
 
-    skimage.io.imsave('image.png', texture_image[:xcenter+xdist_max], cmap=plt.cm.gray)
     return texture_image[:xcenter+xdist_max]
 
-def preprocessImage(input_image, debug=False):
+def preprocessImage(input_image, texture_size=(256, 128), debug=False):
     """
     TODO: add documentation here
     """
-    #return [input_image[0:255,0:255]]
-
     # perform operations
     binary_image = binarize_image(input_image)
     contours, transposed_center, contours_image = get_contours(binary_image)
@@ -140,7 +137,23 @@ def preprocessImage(input_image, debug=False):
     
         plt.show()
     
-    return texture_image[0:256, 0:256]
+    texture_images = []
+    x = 0
+    y = 0
+    ydist, xdist = texture_size
+    print(texture_image.shape)
+    while x + xdist < texture_image.shape[0]:
+        while y + ydist < texture_image.shape[1]:
+            slice_image = texture_image[x:x+xdist, y:y+ydist].copy()
+            texture_images.append(slice_image)
+            y += ydist
+        x += xdist
+    
+    i = 0
+    for slice_image in texture_images:
+        skimage.io.imsave(str(i) + '.png', slice_image, cmap=plt.cm.gray)
+        i += 1
+    return texture_images
 
 
 if __name__ == "__main__":
@@ -152,4 +165,4 @@ if __name__ == "__main__":
     # load the image from disk
     input_image = skimage.io.imread(args["image"], as_gray=True)
 
-    preprocessImage(input_image, debug=True)
+    preprocessImage(input_image, debug=False)
