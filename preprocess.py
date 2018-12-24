@@ -89,8 +89,8 @@ def build_texture(grey_image, contours, transposed_center):
     xdist_max = 0
     for contour in contours:
         xmin, xmax, ymin, ymax = get_cords(contour)
-        xdist = xmax - xmin
-        ydist = ymax - ymin
+        xdist = xmax + 1 - xmin
+        ydist = ymax + 1 - ymin
         xdist_total += xdist
         xnum += 1
         xdist_max = max(xdist_max, xdist)
@@ -104,10 +104,10 @@ def build_texture(grey_image, contours, transposed_center):
                 xdist_max = 0
 
             iso_contour = np.full(shape=(xdist, ydist), fill_value=255)
-            #for point in contour:
-                #iso_contour[int(point[0]) - xmin, int(point[1]) - ymin] = grey_image[int(point[0]), int(point[1])]
+            for point in contour:
+                iso_contour[int(point[0]) - xmin, int(point[1]) - ymin] = grey_image[int(point[0]), int(point[1])]
 
-            texture_image[xcenter:xcenter+xdist, ycenter:ycenter+ydist] = grey_image[xmin:xmax, ymin:ymax]
+            texture_image[xcenter:xcenter+xdist, ycenter:ycenter+ydist] = iso_contour
             ycenter += ydist
 
     return texture_image[:xcenter+xdist_max]
