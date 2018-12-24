@@ -1,6 +1,6 @@
 from sklearn import svm
 from PairWiseVectorsGenerator import getPairWise
-
+import numpy as np
 
 def convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_list):
     positive_dissimilarity_vector = list(abs(x - y) for x, y in positive_list)
@@ -13,7 +13,7 @@ def convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_lis
 
 
 def train_svm(probability=False):
-    positive_list, negative_list = getPairWise(50, 50)
+    positive_list, negative_list = getPairWise(5, 5)
     dissimilarity_vector, labels = convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_list)
     clf = svm.SVC(gamma='scale', cache_size=200, probability=probability)
     clf.fit(dissimilarity_vector, labels)
@@ -23,3 +23,4 @@ def train_svm(probability=False):
 
 if __name__ == '__main__':
     clf, predictions = train_svm()
+    print(sum(predictions))

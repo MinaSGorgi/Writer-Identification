@@ -28,4 +28,4 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
         pickle.dump(writerFeatureVectorsDict, features_file)
 
 
-processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ')
+processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ',25)
