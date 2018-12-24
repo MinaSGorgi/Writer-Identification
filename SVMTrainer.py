@@ -17,11 +17,13 @@ def train_svm(probability=False):
     positive_list, negative_list = getPairWise(5, 5)
     dissimilarity_vector, labels = convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_list)
     train_data,test_data,train_labels ,test_labels = train_test_split(dissimilarity_vector,labels,test_size=0.2)
-    clf = svm.SVC(gamma='scale', cache_size=200, probability=probability)
+    clf = svm.LinearSVC(C=0.5)
     clf.fit(train_data, train_labels)
     predictions = clf.predict(test_data)
     return clf, predictions,test_labels
 
 if __name__ == '__main__':
-    clf, predictions,train_labels = train_svm()
-    print(sum(predictions))
+    clf, predictions,test_lables = train_svm()
+    result = (np.count_nonzero(np.array(test_lables) == predictions) / len(predictions))
+    print(np.count_nonzero(predictions))
+    print(result * 100)

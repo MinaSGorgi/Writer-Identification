@@ -5,6 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from SVMTrainer import convert_pair_wise_vectors_to_dissemelarity_space
 
+
 def train_knn():
     positive_list, negative_list = getPairWise(5, 5)
     dissimilarity_vector, labels = convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_list)
@@ -14,6 +15,8 @@ def train_knn():
     predictions = classifier.predict(test_data)
     return classifier, predictions, test_labels
 
+
 if __name__ == '__main__':
-    clf, predictions,train_labels = train_knn()
-    print(sum(predictions))
+    clf, predictions, train_labels = train_knn()
+    result = (np.count_nonzero(train_labels == predictions) / len(predictions))
+    print(result * 100)
