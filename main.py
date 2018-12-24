@@ -1,21 +1,28 @@
 from argparse import ArgumentParser
+from itertools import product, chain
 from time import time
 from pathlib import Path
 from skimage import io
+
+from KNNTrainer import predict_knn
 from preprocess import preprocessImage
 from features.LBP import LBP
 from features.LPQ import LPQ
+import numpy as np
 
 parser = ArgumentParser()
 parser.add_argument('directory', type=str)
 parser.add_argument('mode', type=str, choices=['LBP', 'LPQ'])
 args = parser.parse_args()
 
+
 def read_classification_data(directory):
     for directory in Path(directory).iterdir():
         if not directory.is_dir():
             continue
-        yield [[directory / folder / (img + '.PNG') for img in ('1', '2')] for folder in ('1', '2', '3')], directory / 'test.PNG'
+        yield [[directory / folder / (img + '.PNG') for img in ('1', '2')] for folder in
+               ('1', '2', '3')], directory / 'test.PNG'
+
 
 def extract_features_from_image(image_path):
     feature_vectors = []
@@ -32,20 +39,22 @@ def extract_features_from_image(image_path):
             raise RuntimeError
     return feature_vectors
 
+
 def classify(data, test):
-    reference_feature_vectors_list = map(lambda images_paths: chain(*map(extract_features_from_image, images_paths)), data)
+    reference_feature_vectors_list = map(lambda images_paths: chain(*map(extract_features_from_image, images_paths)),
+                                         data)
     test_feature_vectors = extract_features_from_image(test)
     scores = []
     for reference_feature_vectors in reference_feature_vectors_list:
         dissimilarity_vectors = [np.abs(x - y) for x, y in product(reference_feature_vectors, test_feature_vectors)]
         scores.append(sum(predict_knn(dissimilarity_vectors)))
-    return score.index(max(scores) + 1)
+    return scores.index(max(scores)) + 1
 
-with open(args.directory, 'r') as directory:
-    with open('results.txt', 'w') as results_file, open('time.txt', 'w') as time_file:
-        for data, test in read_classification_data(args.directory):
-            before = time()
-            label = classify(data, test)
-            after = time()
-            print(label, file=results_file)
-            print(after - before, file=time_file)
+
+with open('results.txt', 'w') as results_file, open('time.txt', 'w') as time_file:
+    for data, test in read_classification_data(args.directory):
+        before = time()
+        label = classify(data, test)
+        after = time()
+        print(label, file=results_file)
+        print(after - before, file=time_file)

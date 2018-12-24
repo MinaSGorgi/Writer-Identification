@@ -25,13 +25,10 @@ def train_knn():
 def predict_knn(features_list):
     with open(knn_file_name, 'rb') as knn_file:
         classifier = pickle.load(knn_file)
-    results = []
-    for feature in features_list:
-        results.append(classifier.predict(feature))
-
-    return results
+    return_val = classifier.predict(features_list)
+    return return_val
 
 if __name__ == '__main__':
     clf, predictions, train_labels = train_knn()
-    result = (np.count_nonzero(train_labels == predictions) / len(predictions))
-    print(result * 100)
+    # result = (np.count_nonzero(train_labels == predictions) / len(predictions))
+    # print(result * 100)

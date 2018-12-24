@@ -6,7 +6,7 @@ data/
 # C extensions
 *.so
 *.obj
-
+*.txt
 # Distribution / packaging
 .Python
 build/
