@@ -17,7 +17,7 @@ def train_svm(probability=False):
     positive_list, negative_list = getPairWise(5, 5)
     dissimilarity_vector, labels = convert_pair_wise_vectors_to_dissemelarity_space(positive_list, negative_list)
     train_data,test_data,train_labels ,test_labels = train_test_split(dissimilarity_vector,labels,test_size=0.2)
-    clf = svm.LinearSVC(C=0.5)
+    clf = svm.SVC(gamma='scale', cache_size=2000,C=0.5)
     clf.fit(train_data, train_labels)
     predictions = clf.predict(test_data)
     return clf, predictions,test_labels

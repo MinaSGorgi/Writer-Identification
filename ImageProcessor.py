@@ -35,4 +35,4 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
     return writerFeatureVectorsDict
 
 
-x = processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LBP',25)
+x = processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ',25)

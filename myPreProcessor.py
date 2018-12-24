@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from skimage.morphology import closing, square, remove_small_holes
 from skimage.segmentation import clear_border
-from skimage.util import invert
 import numpy as np
 
 line_width_height_ratio = 50
@@ -19,14 +18,12 @@ def preprocessImage(image):
     image = image[initially_cropped_area:, initially_cropped_area:]
     thresh = threshold_otsu(image)
     binary_otsu_image = closing(image > thresh, square(3))
-    binary_otsu_image = remove_small_holes(binary_otsu_image, 400, connectivity=2)
+    binary_otsu_image = remove_small_holes(binary_otsu_image, 200, connectivity=2)
     # plt.imshow(binary_otsu_image, cmap=plt.cm.gray)
     # plt.show()
     connected_component_labels, num_labels = label(binary_otsu_image, connectivity=2, return_num=True, background=True)
     connected_component_labels = clear_border(connected_component_labels)
-    # plt.imshow(connected_component_labels, cmap=plt.cm.gray)
-    # plt.show()
-    # image_label_overlay = label2rgb(connected_component_labels, image=image)
+    image_label_overlay = label2rgb(connected_component_labels, image=image)
     # fig, ax = plt.subplots(figsize=(10, 6))
     # ax.imshow(image_label_overlay)
     lineCounter = 0
@@ -55,8 +52,8 @@ def preprocessImage(image):
                 image_max_column = max(image_max_column, maxc)
                 image_min_column = min(image_min_column, minc)
                 image_min_row = min(image_min_row, minr)
-    #         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr, fill=False, edgecolor='blue', linewidth=1)
-    #         ax.add_patch(rect)
+            # rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr, fill=False, edgecolor='blue', linewidth=1)
+            # ax.add_patch(rect)
     # ax.set_axis_off()
     # plt.tight_layout()
     # plt.show()
@@ -64,7 +61,7 @@ def preprocessImage(image):
     # # return [cropped_image]
     # plt.imshow(cropped_image)
     # plt.show()
-    new_image = np.full(cropped_image.shape, 255)
+    new_image = np.full(cropped_image.shape,fill_value=1.0,dtype=image.dtype)
     x_value = 0
     y_value = 0
     prev_max_row = wanted_regions[0].bbox[1]
@@ -75,11 +72,14 @@ def preprocessImage(image):
         min_row, min_column, max_row, max_column = wanted_region.bbox
         if image_min_row < min_row < image_max_row and image_min_row < max_row < image_max_row and image_min_column < min_column < image_max_column and image_min_column < max_column < image_max_column:
             hull = wanted_region.convex_image
+            # plt.imshow(hull)
+            # plt.show()
             # print(hull.dtype)
             row_count = max_row - min_row
             column_count = max_column - min_column
             if x_value + column_count > new_image.shape[1]:
-                y_value += int(np.floor((sum_line_height / lineCounter) * 0.5))
+                y_value += int(np.floor((max_line_height / 1) * 0.6))
+                # print(y_value)
                 x_value = 0
                 sum_line_height = 0
                 lineCounter = 0
@@ -89,8 +89,12 @@ def preprocessImage(image):
             if y_value + row_count > new_image.shape[0] or x_value + column_count > new_image.shape[1]:
                 raise RuntimeError
             # new_image_slice =new_image[y_value:y_value + row_count, x_value:x_value + column_count]
-            new_image[y_value:(y_value + row_count), x_value:(x_value + column_count)][hull] = \
-            image[min_row:max_row, min_column:max_column][hull]
+            new_image[y_value:(y_value + row_count), x_value:(x_value + column_count)][hull] = image[min_row:max_row, min_column:max_column][hull]
+            # print('Shit ' + str(np.count_nonzero(new_image[y_value:(y_value + row_count), x_value:(x_value + column_count)] != image[min_row:max_row, min_column:max_column])))
+            # plt.imshow(image[min_row:max_row, min_column:max_column])
+            # plt.show()
+            # plt.imshow(new_image[y_value:(y_value + row_count), x_value:(x_value + column_count)])
+            # plt.show()
             # new_image_slice = image_slice
             x_value += column_count
             sum_line_height += row_count
@@ -98,15 +102,25 @@ def preprocessImage(image):
             lineCounter += 1
     y_value += max_line_height
     new_image = new_image[:y_value, :]
+    # skimage.io.imsave('texture.png', new_image, cmap=plt.cm.gray)
     returned_images = []
+    # plt.imshow(new_image,cmap=plt.cm.gray)
+    # plt.show()
     if new_image.shape[0] < 128:
         return returned_images
     else:
         x_value = 0
+        y_value = 0
+        # skimage.io.imsave('slices/texture.png', new_image, cmap=plt.cm.gray)
         while x_value < new_image.shape[1]:
             if x_value + 265 > new_image.shape[1]:
-                return returned_images
-            returned_images.append(new_image[:, x_value:x_value + 256])
+                if new_image.shape[0] - (y_value + 128) < 128:
+                #     for i in range(len(returned_images)):
+                #         skimage.io.imsave('slices/' + str(i) + '.png', returned_images[i], cmap=plt.cm.gray)
+                    return returned_images
+                x_value = 0
+                y_value += 128
+            returned_images.append(new_image[y_value:y_value + 128, x_value:x_value + 256])
             x_value += 265
     # plt.imshow(new_image,cmap=plt.cm.gray)
     # plt.show()
@@ -114,11 +128,11 @@ def preprocessImage(image):
 
 
 if __name__ == '__main__':
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/a01-003u.png', as_gray=True)
+    input_image = skimage.io.imread('1.png', as_gray=True)
     preprocessImage(input_image)
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/b01-122.png', as_gray=True)
-    preprocessImage(input_image)
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/f04-064.png', as_gray=True)
-    preprocessImage(input_image)
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/c02-012.png', as_gray=True)
-    preprocessImage(input_image)
+    # input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/b01-122.png', as_gray=True)
+    # preprocessImage(input_image)
+    # input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/f04-064.png', as_gray=True)
+    # preprocessImage(input_image)
+    # input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/c02-012.png', as_gray=True)
+    # preprocessImage(input_image)

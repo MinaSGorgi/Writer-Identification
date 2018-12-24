@@ -7,7 +7,7 @@ from SVMTrainer import convert_pair_wise_vectors_to_dissemelarity_space
 import pickle
 
 
-knn_file = 'knn_classifier.obj'
+knn_file_name = 'knn_classifier.obj'
 
 
 def train_knn():
@@ -16,13 +16,15 @@ def train_knn():
     train_data, test_data, train_labels, test_labels = train_test_split(dissimilarity_vector, labels, test_size=0.2)
     classifier = KNeighborsClassifier(n_neighbors=5)
     classifier.fit(train_data, train_labels)
-    pickle.dump(classifier, knn_file)
+    with open(knn_file_name ,'wb') as knn_file:
+        pickle.dump(classifier, knn_file)
     predictions = classifier.predict(test_data)
     return classifier, predictions, test_labels
 
 
 def predict_knn(features_list):
-    classifier = pickle.load(knn_file)
+    with open(knn_file_name, 'rb') as knn_file:
+        classifier = pickle.load(knn_file)
     results = []
     for feature in features_list:
         results.append(classifier.predict(feature))
