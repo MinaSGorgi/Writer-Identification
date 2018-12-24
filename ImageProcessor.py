@@ -5,16 +5,15 @@ from features.LPQ import LPQ
 from skimage import io
 from pathlib import Path
 import pickle
-from collections import defaultdict
-
 
 
 def processImages(datasetPath, mode, max_writers=float('inf')):
     writerDict = readDataSet(datasetPath)
-    writerFeatureVectorsDict = defaultdict(list)
+    writerFeatureVectorsDict = {}
     for index, writer in enumerate(writerDict):
         if index == max_writers:
             break
+        writerFeatureVectorsDict[writer] = []
         for writerImagePath in writerDict[writer]:
             image = io.imread(writerImagePath, as_gray=True)
             preprocessedImages = preprocessImage(image)
@@ -29,7 +28,4 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
         pickle.dump(writerFeatureVectorsDict, features_file)
 
 
-
-
-
-processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ', 5)
+processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ')
