@@ -149,10 +149,6 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
             y += ydist
         x += xdist
     
-    i = 0
-    for slice_image in texture_images:
-        skimage.io.imsave(str(i) + '.png', slice_image, cmap=plt.cm.gray)
-        i += 1
     return texture_images
 
 
