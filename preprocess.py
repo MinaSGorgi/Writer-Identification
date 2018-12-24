@@ -84,19 +84,22 @@ def build_texture(grey_image, contours, transposed_center):
     xtransposed, ytransposed = transposed_center
     xcenter, ycenter = 0, 0
 
+    xdist_total = 0
+    xnum = 0
     xdist_max = 0
     for contour in contours:
-        xcontour = np.array(list(map(int, contour[:, 0])))
-        ycontour = np.array(list(map(int, contour[:, 1])))
-
         xmin, xmax, ymin, ymax = get_cords(contour)
         xdist = xmax + 1 - xmin
         ydist = ymax + 1 - ymin
+        xdist_total += xdist
+        xnum += 1
         xdist_max = max(xdist_max, xdist)
 
         if ycenter + ydist > texture_image.shape[1]:
             ycenter = 0
-            xcenter += xdist_max
+            xcenter += int( xdist_total / xnum / 2)
+            xdist_total = 0
+            xnum = 0
             xdist_max = 0
 
         iso_contour = np.full(shape=(xdist, ydist), fill_value=255)
@@ -107,6 +110,7 @@ def build_texture(grey_image, contours, transposed_center):
         ycenter += ydist
 
     return texture_image[:xcenter+xdist_max]
+
 
 def preprocessImage(input_image, texture_size=(256, 128), debug=False):
     """
@@ -148,10 +152,10 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
             y += ydist
         x += xdist
 
-    for i in range(len(texture_images)):
-        skimage.io.imsave(str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
-        print(texture_images[i])
-    
+    if debug:
+        for i in range(len(texture_images)):
+            skimage.io.imsave(str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
+
     return texture_images
 
 
