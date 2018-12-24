@@ -80,7 +80,7 @@ def build_texture(grey_image, contours, transposed_center):
     """
     TODO: add documentation here
     """
-    texture_image = np.zeros(shape=grey_image.shape)
+    texture_image = np.full(shape=grey_image.shape, fill_value=255)
     xtransposed, ytransposed = transposed_center
     xcenter, ycenter = 0, 0
 
@@ -99,7 +99,7 @@ def build_texture(grey_image, contours, transposed_center):
             xcenter += xdist_max
             xdist_max = 0
 
-        iso_contour = np.zeros(shape=(xdist, ydist))
+        iso_contour = np.full(shape=(xdist, ydist), fill_value=255)
         for point in contour:
             iso_contour[int(point[0]) - xmin, int(point[1]) - ymin] = grey_image[int(point[0]), int(point[1])]
 
@@ -147,6 +147,10 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
             texture_images.append(slice_image)
             y += ydist
         x += xdist
+
+    for i in range(len(texture_images)):
+        skimage.io.imsave(str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
+        print(texture_images[i])
     
     return texture_images
 
