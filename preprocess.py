@@ -53,7 +53,7 @@ def get_contours(binary_image):
     for contour in contours:
         xmin, xmax, ymin, ymax = get_cords(contour)
 
-        if ymax - ymin > binary_image.shape[1] * 0.8:
+        if ymax - ymin > binary_image.shape[1] * 0.5:
             separators.append(get_cords(contour))
     rmin = separators[1][1] + 5
     rmax = separators[2][0] - 5
@@ -141,7 +141,6 @@ def preprocessImage(input_image, texture_size=(256, 128), debug=False):
     x = 0
     y = 0
     ydist, xdist = texture_size
-    print(texture_image.shape)
     while x + xdist < texture_image.shape[0]:
         while y + ydist < texture_image.shape[1]:
             slice_image = texture_image[x:x+xdist, y:y+ydist].copy()
@@ -161,4 +160,4 @@ if __name__ == "__main__":
     # load the image from disk
     input_image = skimage.io.imread(args["image"], as_gray=True)
 
-    preprocessImage(input_image, debug=False)
+    preprocessImage(input_image, debug=True)
