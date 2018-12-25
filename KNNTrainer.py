@@ -30,5 +30,5 @@ def predict_knn(features_list):
 
 if __name__ == '__main__':
     clf, predictions, train_labels = train_knn()
-    # result = (np.count_nonzero(train_labels == predictions) / len(predictions))
-    # print(result * 100)
+    result = (np.count_nonzero(train_labels == predictions) / len(predictions))
+    print(result * 100)

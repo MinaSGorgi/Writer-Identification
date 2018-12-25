@@ -21,6 +21,7 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
             preprocessedImages = preprocessImage(image)
             if len(preprocessedImages) == 0:
                 continue
+            print(len(preprocessedImages))
             for preprocessedFragment in preprocessedImages:
                 if mode == 'LBP':
                     feature_vectors.append(LBP(preprocessedFragment))
