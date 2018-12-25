@@ -21,7 +21,6 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
             preprocessedImages = preprocessImage(image)
             if len(preprocessedImages) == 0:
                 continue
-            print(len(preprocessedImages))
             for preprocessedFragment in preprocessedImages:
                 if mode == 'LBP':
                     feature_vectors.append(LBP(preprocessedFragment))
@@ -36,4 +35,4 @@ def processImages(datasetPath, mode, max_writers=float('inf')):
     return writerFeatureVectorsDict
 
 
-x = processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LPQ',25)
+x = processImages(Path.home() / 'Documents' / 'PatternProject' / 'iamDB', 'LBP',25)
