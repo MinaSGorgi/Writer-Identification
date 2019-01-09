@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+
 import skimage
 
 from skimage.filters import threshold_otsu
@@ -12,6 +14,14 @@ import numpy as np
 line_width_height_ratio = 50
 max_same_line_diff = 30
 initially_cropped_area = 30
+
+
+def compare_regions(region1, region2):
+    centroid1 = region1.local_centroid
+    centroid2 = region2.local_centroid
+    if abs(centroid1[0] - centroid2[0]) < 100:
+        return centroid1[1] - centroid2[1]
+    return centroid1[0] - centroid2[0]
 
 
 def preprocessImage(image):
@@ -94,12 +104,14 @@ def preprocessImage(image):
                     if starting_y_value + region_row_count > new_image.shape[0] or x_value + region_column_count > \
                             new_image.shape[1]:
                         raise RuntimeError
-                    new_image[starting_y_value:(starting_y_value + region_row_count),x_value:(x_value + region_column_count)][hull]=cropped_image[region_min_row:region_max_row, region_min_column:region_max_column][hull]
+                    new_image[starting_y_value:(starting_y_value + region_row_count),
+                    x_value:(x_value + region_column_count)][hull] = \
+                    cropped_image[region_min_row:region_max_row, region_min_column:region_max_column][hull]
                     x_value += region_column_count
                     # plt.imshow(new_image)
                     # plt.show()
                 # advance y value with average /2
-                y_value += int(np.ceil((sum_line_height / len(line_regions)) * 0.5))
+                y_value += int(np.ceil((sum_line_height / len(line_regions)) * 1))
                 # print(y_value)
                 x_value = 0
                 sum_line_height = 0

@@ -5,7 +5,7 @@ from pathlib import Path
 from skimage import io
 
 from KNNTrainer import predict_knn
-from preprocess import preprocessImage
+from myPreProcessor import preprocessImage
 from features.LBP import LBP
 from features.LPQ import LPQ
 import numpy as np
@@ -15,13 +15,14 @@ parser.add_argument('directory', type=str)
 parser.add_argument('mode', type=str, choices=['LBP', 'LPQ'])
 args = parser.parse_args()
 
+extension = '.JPG'
 
 def read_classification_data(directory):
     for directory in Path(directory).iterdir():
         if not directory.is_dir():
             continue
-        yield [[directory / folder / (img + '.PNG') for img in ('1', '2')] for folder in
-               ('1', '2', '3')], directory / 'test.PNG'
+        yield [[directory / folder / (img + extension) for img in ('1', '2')] for folder in
+               ('1', '2', '3')], directory / ('test'+extension)
 
 
 def extract_features_from_image(image_path):
@@ -29,7 +30,7 @@ def extract_features_from_image(image_path):
     image = io.imread(image_path, as_gray=True)
     preprocessedImages = preprocessImage(image)
     if len(preprocessedImages) == 0:
-        raise RuntimeError('Too small handwritten text at ' + image_path)
+        raise RuntimeError('Too small handwritten text at ' + str(image_path))
     for preprocessedFragment in preprocessedImages:
         if args.mode == 'LBP':
             feature_vectors.append(LBP(preprocessedFragment))
