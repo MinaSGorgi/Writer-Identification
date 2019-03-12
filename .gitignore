@@ -2,12 +2,13 @@
 __pycache__/
 *.py[cod]
 *$py.class
-data/
+
 # C extensions
 *.so
 *.obj
 *.txt
 *.png
+
 # Distribution / packaging
 .Python
 build/
@@ -113,3 +114,6 @@ venv.bak/
 
 # Debug
 slices/
+
+# Project Specific
+data/
