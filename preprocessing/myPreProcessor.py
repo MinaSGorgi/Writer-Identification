@@ -1,17 +1,18 @@
 import argparse
 from functools import cmp_to_key
 
-import skimage
-from skimage import io
-
-from skimage.filters import threshold_otsu
-from skimage.measure import label, regionprops
-from skimage.color import label2rgb
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import numpy as np
+
+import skimage
+from skimage.color import label2rgb
+from skimage.filters import threshold_otsu
+from skimage.io import imread
+from skimage.measure import label, regionprops
 from skimage.morphology import closing, square, remove_small_holes
 from skimage.segmentation import clear_border
-import numpy as np
+
 
 line_width_height_ratio = 50
 max_same_line_diff = 30
@@ -167,5 +168,5 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--image", required=True, help="path to input image file")
     args = vars(parser.parse_args())
 
-    input_image = skimage.io.imread(args["image"], as_gray=True)
+    input_image = imread(args["image"], as_gray=True)
     preprocessImage(input_image)
