@@ -1,6 +1,8 @@
+import argparse
 from functools import cmp_to_key
 
 import skimage
+from skimage import io
 
 from skimage.filters import threshold_otsu
 from skimage.measure import label, regionprops
@@ -160,11 +162,10 @@ def preprocessImage(image):
 
 
 if __name__ == '__main__':
-    input_image = skimage.io.imread('1.png', as_gray=True)
-    preprocessImage(input_image)
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/b01-122.png', as_gray=True)
-    preprocessImage(input_image)
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/f04-064.png', as_gray=True)
-    preprocessImage(input_image)
-    input_image = skimage.io.imread('/home/hassan/Documents/PatternProject/iamDB/forms/c02-012.png', as_gray=True)
+    # for manual testing purposes
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--image", required=True, help="path to input image file")
+    args = vars(parser.parse_args())
+
+    input_image = skimage.io.imread(args["image"], as_gray=True)
     preprocessImage(input_image)
