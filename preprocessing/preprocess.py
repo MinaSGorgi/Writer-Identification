@@ -1,4 +1,5 @@
 import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,7 +14,7 @@ def binarize_image(grey_image):
     Performs: Gaussian blur -> Otsu threshold -> Closing kernel.
 
     Args:
-        grey_image: The grey image to process.
+        grey_image: The grey image to binarize.
 
     Returns:
         The resultant new binary image.
@@ -41,7 +42,7 @@ def get_cords(contour):
     ))
 
 
-def get_contours(binary_image):
+def get_paragraph(binary_image):
     """
     TODO: add documentation here
     """
@@ -52,112 +53,31 @@ def get_contours(binary_image):
     # get 3 separator lines
     for contour in contours:
         xmin, xmax, ymin, ymax = get_cords(contour)
-
-        if ymax - ymin > binary_image.shape[1] * 0.5:
+        if ymax - ymin > binary_image.shape[0] * 0.5:
             separators.append(get_cords(contour))
     rmin = separators[1][1] + 5
     rmax = separators[2][0] - 5
 
-    contours_image = binary_image.copy()
-    final_contours = []
-    # get contours of extracted text only
-    for contour in contours:
-        xmin, xmax, ymin, ymax = get_cords(contour)
+    paragraph = binary_image[rmin:rmax]
 
-        if xmin > rmin and xmax < rmax:
-            final_contours.append(contour)
+    # remove padding
+    rows = [row for row in range(paragraph.shape[0]) if paragraph[row, :].any()]
+    cols = [col for col in range(paragraph.shape[1]) if paragraph[:, col].any()]
+    
+    top, bottom = rows[0], rows[-1]
+    left, right = cols[0], cols[-1]
 
-            r = [xmin, xmax, xmax, xmin, xmin]
-            c = [ymax, ymax, ymin, ymin, ymax]
-
-            rr, cc = skimage.draw.polygon_perimeter(r, c, contours_image.shape)
-            contours_image[rr, cc] = 1  # set color white
-
-    return final_contours, (separators[1][1], separators[1][2]), contours_image[rmin:rmax]
+    return paragraph[top:bottom, left:right]
 
 
-def build_texture(grey_image, contours, transposed_center):
+def preprocess_image(input_image):
     """
     TODO: add documentation here
     """
-    texture_image = np.full(shape=grey_image.shape, fill_value=255)
-    xtransposed, ytransposed = transposed_center
-    xcenter, ycenter = 0, 0
-
-    xdist_total = 0
-    xnum = 0
-    xdist_max = 0
-    for contour in contours:
-        xmin, xmax, ymin, ymax = get_cords(contour)
-        xdist = xmax + 1 - xmin
-        ydist = ymax + 1 - ymin
-        xdist_total += xdist
-        xnum += 1
-        xdist_max = max(xdist_max, xdist)
-        
-        if xdist > 32 and ydist > 32:
-            if ycenter + ydist > texture_image.shape[1]:
-                ycenter = 0
-                xcenter += xdist_max
-                xdist_total = 0
-                xnum = 0
-                xdist_max = 0
-
-            iso_contour = np.full(shape=(xdist, ydist), fill_value=255)
-            for point in contour:
-                iso_contour[int(point[0]) - xmin, int(point[1]) - ymin] = grey_image[int(point[0]), int(point[1])]
-
-            texture_image[xcenter:xcenter+xdist, ycenter:ycenter+ydist] = iso_contour
-            ycenter += ydist
-
-    return texture_image[:xcenter+xdist_max]
-
-
-def preprocessImage(input_image, texture_size=(256, 128), debug=False):
-    """
-    TODO: add documentation here
-    """
-    # perform operations
     binary_image = binarize_image(input_image)
-    contours, transposed_center, contours_image = get_contours(binary_image)
-    texture_image = build_texture(input_image, contours, transposed_center)
+    paragraph = get_paragraph(binary_image)
 
-    texture_images = []
-    x = 0
-    y = 0
-    ydist, xdist = texture_size
-    while x + xdist < texture_image.shape[0]:
-        while y + ydist < texture_image.shape[1]:
-            slice_image = texture_image[x:x+xdist, y:y+ydist].copy()
-            texture_images.append(slice_image)
-            y += ydist
-        x += xdist
-    
-    if debug:
-        # show results
-        rows = 2
-        cols = 2
-        figure, axes = plt.subplots(rows, cols)
-    
-        axes[0][0].imshow(input_image, cmap=plt.cm.gray)
-        axes[0][0].set_title('Input Image')
-    
-        axes[0][1].imshow(binary_image, cmap=plt.cm.gray)
-        axes[0][1].set_title('Binary Image')
-    
-        axes[1][0].imshow(contours_image, cmap=plt.cm.gray)
-        axes[1][0].set_title('Contours Image')
-
-        axes[1][1].imshow(texture_image, cmap=plt.cm.gray)
-        axes[1][1].set_title('Texture Image')
-    
-        plt.show()
-
-        skimage.io.imsave('slices/texture.png', texture_image, cmap=plt.cm.gray)
-        for i in range(len(texture_images)):
-            skimage.io.imsave('slices/'+ str(i)+'.png', texture_images[i], cmap=plt.cm.gray)
-
-    return texture_images
+    return paragraph
 
 
 if __name__ == "__main__":
@@ -169,4 +89,6 @@ if __name__ == "__main__":
     # load the image from disk
     input_image = skimage.io.imread(args["image"], as_gray=True)
 
-    preprocessImage(input_image, debug=True)
+    preprocessed_image = preprocess_image(input_image)
+    plt.imshow(preprocessed_image, cmap=plt.cm.gray)
+    plt.show()
